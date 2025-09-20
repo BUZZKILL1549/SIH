@@ -5,3 +5,6 @@ pydeck
 tensorflow
 requests
 pillow
+fastapi
+uvicorn
+pydantic
