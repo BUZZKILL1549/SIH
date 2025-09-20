@@ -5,11 +5,11 @@ from PIL import Image
 from ai_logic import predict
 import requests
 import pydeck as pdk
-    
+
+st.set_page_config(layout="wide")
 
 tab1, tab2 = st.tabs(["Dashboard", "Map"])
 with tab1:
-    st.set_page_config(layout="wide")
     st.title("Waste Tracker Dashboard")
 
     # --- Initialize session state dataframe ---
@@ -144,7 +144,7 @@ with tab1:
 with tab2:
     st.header("Smart Bin Map")
 
-    API_URL = "http://localhost:8000/bins"
+    API_URL = "https://sih-h85i.onrender.com"
 
     try:
         bins = requests.get(API_URL).json()
