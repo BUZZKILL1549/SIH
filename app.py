@@ -144,7 +144,7 @@ with tab1:
 with tab2:
     st.header("Smart Bin Map")
 
-    API_URL = "https://sih-h85i.onrender.co/bins"
+    API_URL = "https://sih-h85i.onrender.co/garbage_alert"
 
     try:
         bins = requests.get(API_URL).json()
