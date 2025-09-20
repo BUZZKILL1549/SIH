@@ -1,3 +1,5 @@
+
+import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -5,7 +7,11 @@ from typing import List
 import sqlite3
 from datetime import datetime
 
+
 app = FastAPI()
+
+# For Render: get port from environment variable
+PORT = int(os.environ.get("PORT", 10000))
 
 # Allow CORS for local Streamlit
 app.add_middleware(

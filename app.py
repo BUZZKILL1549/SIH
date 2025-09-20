@@ -5,8 +5,11 @@ from PIL import Image
 from ai_logic import predict
 import requests
 import pydeck as pdk
+import os
 
 st.set_page_config(layout="wide")
+
+port = int(os.environ.get("PORT", 10000))
 
 tab1, tab2 = st.tabs(["Dashboard", "Map"])
 with tab1:
@@ -142,44 +145,15 @@ with tab1:
     """, unsafe_allow_html=True)
 
 with tab2:
-    st.header("Smart Bin Map")
-
     API_URL = "https://sih-h85i.onrender.co/bins"
 
+    response = requests.get(API_URL, allow_redirects=True)
+    st.write("Status code: ", response.status_code)
+    st.write("Raw text: ", response.text)
+
     try:
-        bins = requests.get(API_URL).json()
-        df = pd.DataFrame(bins)
+        bins = response.json()
+        st.write("JSON: ", bins)
     except Exception as e:
-        st.error(f"Could not fetch bin data: {e}")
+        st.error(f"JSON decode error: {e}")
         st.stop()
-
-    if df.empty:
-        st.info("No bin data available.")
-    else:
-        def get_color(row):
-            if row["status"] == "FULL":
-                return [255, 0, 0]
-            else:
-                return [0, 200, 0]
-        df["color"] = df.apply(get_color, axis=1)
-
-        st.pydeck_chart(pdk.Deck(
-            map_style="mapbox://styles/mapbox/streets-v11",
-            initial_view_state=pdk.ViewState(
-                latitude=df["lat"].mean(),
-                longitude=df["lon"].mean(),
-                zoom=14,
-                pitch=0,
-            ),
-            layers=[
-                pdk.Layer(
-                    "ScatterplotLayer",
-                    data=df,
-                    get_position="[lon, lat]",
-                    get_color="color",
-                    get_radius=30,
-                    pickable=True,
-                ),
-            ],
-            tooltip={"text": "Bin {bin_id} ({type})\\nStatus: {status}\\nLast: {last_update}"}
-        ))
