@@ -1,0 +1,95 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+
+// Wi-Fi credentials
+const char* ssid = "YourWiFiName";
+const char* password = "YourWiFiPassword";
+
+// Server URL (your FastAPI backend)
+const char* serverUrl = "http://your-computer-ip:8000/garbage_alert"; // Use your PC's IP address
+
+// Bin info (set these for each bin)
+const char* bin_id = "bin_chennai_1";
+const float lat = 12.8794;
+const float lon = 80.1981;
+const char* type = "Wet"; // or "Dry"
+
+// Ultrasonic sensor pins
+#define TRIG D1
+#define ECHO D2
+
+const int binHeight = 30;  // cm
+const int fullLevel = 5;   // cm (bin full if ≤ 5cm distance)
+bool alertSent = false;
+
+WiFiClient client;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  // Connect to Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to Wi-Fi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWi-Fi Connected!");
+}
+
+long getDistance() {
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duration = pulseIn(ECHO, HIGH);
+  long distance = duration * 0.034 / 2; // convert to cm
+  return distance;
+}
+
+void loop() {
+  long distance = getDistance();
+  Serial.print("Garbage level distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  String status = (distance <= fullLevel) ? "FULL" : "EMPTY";
+
+  if (status == "FULL" && !alertSent) {
+    Serial.println("Bin is FULL! Sending alert...");
+    if (WiFi.status() == WL_CONNECTED) {
+      HTTPClient http;
+      http.begin(client, serverUrl);
+      http.addHeader("Content-Type", "application/json");
+
+      // JSON message with all required fields
+      String jsonData = "{\"bin_id\":\"" + String(bin_id) + "\","
+                        "\"lat\":" + String(lat, 6) + ","
+                        "\"lon\":" + String(lon, 6) + ","
+                        "\"type\":\"" + String(type) + "\","
+                        "\"status\":\"FULL\"}";
+
+      int httpResponseCode = http.POST(jsonData);
+
+      if (httpResponseCode > 0) {
+        Serial.println("Alert sent successfully!");
+        alertSent = true;  // avoid repeating
+      } else {
+        Serial.print("Failed to send alert. HTTP code: ");
+        Serial.println(httpResponseCode);
+      }
+      http.end();
+    }
+  }
+
+  // Reset alert flag if bin is emptied
+  if (distance > fullLevel + 5) {
+    alertSent = false;
+  }
+
+  delay(5000); // check every 5 seconds
+}
