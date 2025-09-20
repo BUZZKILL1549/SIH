@@ -1,4 +1,3 @@
-
 import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,6 +46,10 @@ class BinAlert(BaseModel):
     lon: float
     type: str  # 'Wet' or 'Dry'
     status: str  # 'FULL' or 'EMPTY'
+
+@app.get("/")
+def root():
+    return {"message": "Smart Bin API is running."}
 
 @app.post("/garbage_alert")
 def garbage_alert(alert: BinAlert):
