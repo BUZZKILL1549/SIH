@@ -176,8 +176,9 @@ with tab2:
                 return [0, 200, 0]
         df["color"] = df.apply(get_color, axis=1)
 
+        
         st.pydeck_chart(pdk.Deck(
-            map_style="mapbox://styles/mapbox/streets-v11",
+            map_style="dark",
             initial_view_state=pdk.ViewState(
                 latitude=df["lat"].mean(),
                 longitude=df["lon"].mean(),
