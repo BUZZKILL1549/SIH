@@ -65,7 +65,7 @@ with tab1:
 
     st.subheader("Scan Waste")
     uploaded_file = st.file_uploader(
-        label="",
+        label="Scan Waste",
         type=["jpg", "jpeg", "png"],
         accept_multiple_files=False,
         key="file_uploader"
@@ -145,15 +145,54 @@ with tab1:
     """, unsafe_allow_html=True)
 
 with tab2:
-    API_URL = "https://sih-h85i.onrender.co/bins"
+    import time
 
-    response = requests.get(API_URL, allow_redirects=True)
-    st.write("Status code: ", response.status_code)
-    st.write("Raw text: ", response.text)
+    API_URL = "https://sih-h85i.onrender.com/bins"
+    st.header("Smart Bin Map")
 
-    try:
-        bins = response.json()
-        st.write("JSON: ", bins)
-    except Exception as e:
-        st.error(f"JSON decode error: {e}")
+    max_retries = 5
+    bins = None
+    for i in range(max_retries):
+        response = requests.get(API_URL)
+        try:
+            bins = response.json()
+            break  # Success!
+        except Exception:
+            st.warning("Backend waking up, retrying in 3 seconds...")
+            time.sleep(3)
+    else:
+        st.error("Could not fetch bin data after several tries.")
         st.stop()
+
+    df = pd.DataFrame(bins)
+
+    if df.empty:
+        st.info("No bin data available.")
+    else:
+        def get_color(row):
+            if row["status"] == "FULL":
+                return [255, 0, 0]
+            else:
+                return [0, 200, 0]
+        df["color"] = df.apply(get_color, axis=1)
+
+        st.pydeck_chart(pdk.Deck(
+            map_style="mapbox://styles/mapbox/streets-v11",
+            initial_view_state=pdk.ViewState(
+                latitude=df["lat"].mean(),
+                longitude=df["lon"].mean(),
+                zoom=14,
+                pitch=0,
+            ),
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=df,
+                    get_position="[lon, lat]",
+                    get_color="color",
+                    get_radius=30,
+                    pickable=True,
+                ),
+            ],
+            tooltip={"text": "Bin {bin_id} ({type})\\nStatus: {status}\\nLast: {last_update}"}
+        ))
