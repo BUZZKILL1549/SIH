@@ -15,11 +15,22 @@ tab1, tab2 = st.tabs(["Dashboard", "Map"])
 with tab1:
     st.title("Waste Tracker Dashboard")
 
+    if "points" not in st.session_state:
+        st.session_state.points = 0
+
     # --- Initialize session state dataframe ---
     if "df" not in st.session_state:
         st.session_state.df = pd.DataFrame(columns=["Day", "Wet Waste (kg)", "Dry Waste (kg)"])
 
     df = st.session_state.df
+
+    if df.empty:
+        st.session_state.df = pd.DataFrame({
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            "Wet Waste (kg)": [1.2, 0.9, 1.5, 1.1, 1.3, 1.7],
+            "Dry Waste (kg)": [0.6, 0.7, 0.5, 0.8, 0.9, 0.4]
+        })
+        df = st.session_state.df
 
     # --- Calculate stats only if data exists ---
     if not df.empty:
@@ -119,14 +130,15 @@ with tab1:
                 writer.writerow(log_row)
 
             st.session_state["last_uploaded_filename"] = uploaded_file.name
+            st.session_state.points += 10
             st.rerun()
         else:
             st.info("This file has already been processed. Upload a new file to add more data.")
 
     # --- Points counter (fixed for now) ---
-    st.markdown("""
+    st.markdown(f"""
         <style>
-        .points-counter {
+        .points-counter {{
             position: fixed;
             bottom: 20px;
             right: 20px;
@@ -137,10 +149,10 @@ with tab1:
             font-size: 18px;
             font-weight: bold;
             box-shadow: 0px 4px 6px rgba(0,0,0,0.2);
-        }
+        }}
         </style>
         <div class="points-counter">
-            ⭐ Points: 495
+            ⭐ Points: {st.session_state.points}
         </div>
     """, unsafe_allow_html=True)
 
