@@ -20,14 +20,20 @@ with tab1:
     if "points" not in st.session_state:
         st.session_state.points = 0
 
-    # --- Clear any existing data to start fresh ---
-    if "df" in st.session_state:
-        # Remove any existing data in session state to reset to empty
-        del st.session_state.df
+    # --- Initialize session state dataframe ---
+    if "df" not in st.session_state:
+        st.session_state.df = pd.DataFrame(columns=["Day", "Wet Waste (kg)", "Dry Waste (kg)"])
 
-    # Initialize an empty DataFrame (no sample data)
-    st.session_state.df = pd.DataFrame(columns=["Day", "Wet Waste (kg)", "Dry Waste (kg)"])
     df = st.session_state.df
+
+    # Sample data (uncomment to use sample data)
+    if df.empty:
+        st.session_state.df = pd.DataFrame({
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+            "Wet Waste (kg)": [1.2, 0.9, 1.5, 1.1, 1.3, 1.7],
+            "Dry Waste (kg)": [0.6, 0.7, 0.5, 0.8, 0.9, 0.4]
+        })
+        df = st.session_state.df
 
     # --- Calculate stats only if data exists ---
     if not df.empty:
