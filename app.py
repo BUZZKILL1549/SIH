@@ -24,6 +24,7 @@ with tab1:
 
     df = st.session_state.df
 
+    '''
     if df.empty:
         st.session_state.df = pd.DataFrame({
             "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
@@ -31,7 +32,7 @@ with tab1:
             "Dry Waste (kg)": [0.6, 0.7, 0.5, 0.8, 0.9, 0.4]
         })
         df = st.session_state.df
-
+    '''
     # --- Calculate stats only if data exists ---
     if not df.empty:
         df["Total Waste (kg)"] = df["Wet Waste (kg)"] + df["Dry Waste (kg)"]
