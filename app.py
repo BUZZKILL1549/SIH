@@ -12,26 +12,23 @@ st.set_page_config(layout="wide")
 port = int(os.environ.get("PORT", 10000))
 
 tab1, tab2 = st.tabs(["Dashboard", "Map"])
+
+# Tab 1 - Waste Tracker Dashboard
 with tab1:
     st.title("Waste Tracker Dashboard")
 
     if "points" not in st.session_state:
         st.session_state.points = 0
 
-    # --- Initialize session state dataframe ---
-    if "df" not in st.session_state:
-        st.session_state.df = pd.DataFrame(columns=["Day", "Wet Waste (kg)", "Dry Waste (kg)"])
+    # --- Clear any existing data to start fresh ---
+    if "df" in st.session_state:
+        # Remove any existing data in session state to reset to empty
+        del st.session_state.df
 
+    # Initialize an empty DataFrame (no sample data)
+    st.session_state.df = pd.DataFrame(columns=["Day", "Wet Waste (kg)", "Dry Waste (kg)"])
     df = st.session_state.df
 
-    if df.empty:
-        st.session_state.df = pd.DataFrame({
-            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-            "Wet Waste (kg)": [1.2, 0.9, 1.5, 1.1, 1.3, 1.7],
-            "Dry Waste (kg)": [0.6, 0.7, 0.5, 0.8, 0.9, 0.4]
-        })
-        df = st.session_state.df
-        
     # --- Calculate stats only if data exists ---
     if not df.empty:
         df["Total Waste (kg)"] = df["Wet Waste (kg)"] + df["Dry Waste (kg)"]
@@ -156,6 +153,7 @@ with tab1:
         </div>
     """, unsafe_allow_html=True)
 
+# Tab 2 - Smart Bin Map
 with tab2:
     import time
 
@@ -188,7 +186,6 @@ with tab2:
                 return [0, 200, 0]
         df["color"] = df.apply(get_color, axis=1)
 
-        
         st.pydeck_chart(pdk.Deck(
             map_style="dark",
             initial_view_state=pdk.ViewState(
