@@ -52,7 +52,7 @@ with tab1:
             st.subheader("Wet Waste")
             if not df.empty:
                 fig_wet = px.line(df, x="Day", y="Wet Waste (kg)", markers=True)
-                st.plotly_chart(fig_wet, use_container_width=True, height=300)
+                st.plotly_chart(fig_wet, config={"responsive": True}, use_container_width=True)
             else:
                 st.info("No wet waste data yet. Scan to add entries.")
 
@@ -60,7 +60,7 @@ with tab1:
             st.subheader("Dry Waste")
             if not df.empty:
                 fig_dry = px.line(df, x="Day", y="Dry Waste (kg)", markers=True)
-                st.plotly_chart(fig_dry, use_container_width=True, height=300)
+                st.plotly_chart(fig_dry, config={"responsive": True}, use_container_width=True)
             else:
                 st.info("No dry waste data yet. Scan to add entries.")
 
